@@ -7,8 +7,8 @@ Projeto de exemplo para demonstração de habilidades em DevOps, Kubernetes, Clo
 ## 🔧 Tecnologias Utilizadas
 
 - **Containers:** Docker
-- **Orquestração:** Kubernetes (EKS)
-- **Cloud:** AWS
+- **Orquestração:** Kubernetes (EKS) e (GKE)
+- **Cloud:** AWS && GCP
 - **CI/CD:** GitHub Actions + ArgoCD
 - **Infraestrutura como Código:** Terraform, Ansible, Kustomize
 - **Banco de Dados:** PostgreSQL (via RDS AWS)
