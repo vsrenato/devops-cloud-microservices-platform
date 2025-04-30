@@ -1,0 +1,67 @@
+Instalando o Minikube no Windows
+Vamos aprender a instalar a versão mais recente do Minikube no Windows 10 e 11, especificamente com o VirtualBox v7.0. Esta instalação pressupõe que nenhum outro software de isolamento esteja instalado em nossa estação de trabalho Windows, como Hyper-V, VMware Workstation, QEMU ou Docker Engine, que o Minikube possa usar como driver.
+
+OBSERVAÇÃO : Para outras versões do SO, VirtualBox e Minikube, as etapas de instalação podem variar! Consulte a instalação do Minikube para obter instruções específicas!
+
+Verifique o suporte à virtualização no seu sistema Windows (várias linhas de saída terminando com "Sim" indicam virtualização suportada):
+
+PS C:\WINDOWS\system32> informações do sistema
+
+Instale o hipervisor do VirtualBox para "hosts Windows". Baixe e instale o pacote .exe .
+
+OBSERVAÇÃO : pode ser necessário desabilitar o Hyper-V no seu host Windows (se instalado e usado anteriormente) ao executar o VirtualBox.
+
+Instalar o Minikube. Podemos baixar a versão mais recente ou uma versão específica disponível na página de lançamentos do Minikube . Após o download, precisamos garantir que ele seja adicionado ao nosso PATH . Existem vários pacotes disponíveis para download para Windows, encontrados em uma versão do Minikube. No entanto, baixar e instalar o minikube-installer.exe adicionará automaticamente o executável ao PATH . Vamos baixar e instalar o pacote minikube-installer.exe mais recente .
+
+Inicie o Minikube. Podemos iniciar o Minikube usando o comando minikube start , que inicializa um cluster de nó único com a versão estável mais recente do Kubernetes suportada. Para uma versão específica do Kubernetes, a opção --kubernetes-version pode ser usada como minikube start --kubernetes-version=v1.27.1 (onde "latest" é o valor padrão e aceitável da versão, e "stable" também é aceitável). Caso existam outros drivers de virtualização candidatos para o Minikube na estação de trabalho, é recomendável fornecer o driver desejado com a opção --driver=virtualbox . Opções de inicialização mais avançadas serão exploradas posteriormente neste capítulo. Abra o PowerShell usando a opção Executar como Administrador e execute o seguinte comando:
+
+PS C:\WINDOWS\system32> minikube start --driver=virtualbox
+
+😄 minikube v1.32.0 no Windows 10
+✨ Usando o driver do VirtualBox com base na configuração do usuário
+💿 Baixando a imagem de inicialização da VM ...
+   > minikube-v1.32.1-amd64.iso....: 65 B / 65 B [---------] 100,00% ? p/s 0s
+   > minikube-v1.32.1-amd64.iso: 292,96 MiB / 292,96 MiB 100,00% 31,34 MiB p
+👍 Iniciando o nó do plano de controle minikube no cluster minikube
+💾 Baixando o Kubernetes v1.28.3 preload ...
+   > preloaded-images-k8s-v18-v1...: 403,35 MiB / 403,35 MiB 100,00% 32,19 M
+🔥 Criando VM virtualbox (CPUs=2, Memória=6000MB, Disco=20000MB) ...
+🐳 Preparando o Kubernetes v1.28.3 no Docker 24.0.7 ...
+   ▪ Gerando certificados e chaves ...
+   ▪ Inicializando o plano de controle ...
+   ▪ Configurando regras RBAC...
+🔗 Configurando a ponte CNI (Container Networking Interface)...
+🔎 Verificando componentes do Kubernetes...
+   ▪ Usando a imagem gcr.io/k8s-minikube/storage-provisioner:v5
+🌟 Complementos habilitados: storage-provisioner, default-storageclass
+💡 kubectl não encontrado. Se precisar, tente: 'minikube kubectl -- get pods -A'
+🏄 Pronto! O kubectl agora está configurado para usar o cluster "minikube" e o namespace "default" por padrão.
+
+NOTA : Uma mensagem de erro que diz "Não foi possível escolher um driver padrão..." significa que o Minikube não conseguiu localizar nenhum dos hipervisores ou runtimes suportados. A recomendação é instalar ou reinstalar uma ferramenta de isolamento desejada e garantir que seu executável seja encontrado no PATH padrão do seu sistema operacional.
+
+Verifique o status. Com o  comando minikube status , exibimos o status do cluster Minikube. Abra o PowerShell usando a  opção Executar como Administrador e execute o seguinte comando:
+
+PS C:\WINDOWS\system32> status do minikube
+
+minikube
+tipo: Plano de controle
+host: Executando
+kubelet: Executando
+apiserver: Executando
+kubeconfig: Configurado
+
+Pare o Minikube. Podemos parar o Minikube usando o comando minikube stop . Este comando interrompe todos os aplicativos em execução no Minikube, interrompe com segurança o cluster e a VM do VirtualBox, preservando nosso trabalho até decidirmos reiniciar o cluster do Minikube, preservando a VM do Minikube. Abra o PowerShell usando a opção Executar como Administrador e execute o seguinte comando:
+
+PS C:\WINDOWS\system32> parada do minikube
+
+✋ Parando o nó "minikube" ...
+🛑 1 nó parado.
+
+Quando for a hora de executar o cluster novamente, basta executar o comando minikube start (a opção de driver não é necessária) e ele reiniciará o cluster Minikube inicializado anteriormente.
+
+Remova o Minikube. O comando minikube delete remove completamente o Minikube e a VM do Minikube. Este comando deve ser tentado somente quando o cluster Minikube for desativado. Todo o trabalho será perdido após a conclusão deste comando. Abra o PowerShell usando a opção Executar como Administrador e execute o seguinte comando:
+
+PS C:\WINDOWS\system32> minikube delete
+
+🔥 Excluindo "minikube" no VirtualBox ...
+💀 Removido todos os vestígios do cluster "minikube".

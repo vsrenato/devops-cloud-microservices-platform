@@ -1,0 +1,135 @@
+## Recursos avançados do Minikube
+
+Agora que nos familiarizamos com o comando start padrão do minikube , vamos nos aprofundar no Minikube para entender alguns de seus recursos mais avançados.
+
+Por padrão, o comando minikube start seleciona um software de isolamento de driver, como um hipervisor ou um ambiente de execução de contêiner, caso um (VitualBox) ou vários estejam instalados na estação de trabalho host. Além disso, ele baixa os componentes da versão mais recente do Kubernetes. Com o software de driver selecionado, ele provisiona uma única VM chamada minikube (com perfil de hardware de CPUs = 2, Memória = 6 GB, Disco = 20 GB) ou contêiner (Docker) para hospedar o cluster Kubernetes all-in-one padrão de nó único. Após o provisionamento do nó, ele inicializa o plano de controle do Kubernetes (com a ferramenta padrão kubeadm) e instala a versão mais recente do ambiente de execução de contêiner padrão, o Docker, que servirá como ambiente de execução para os aplicativos em contêiner que implantaremos no cluster Kubernetes. O comando minikube start gera um cluster minikube padrão com as especificações descritas acima e as armazena para que possamos reiniciar o cluster padrão sempre que desejarmos. O objeto que armazena as especificações do nosso cluster é chamado de perfil .
+
+À medida que o Minikube amadurece, seus recursos e funcionalidades também amadurecem. Com a introdução de perfis, o Minikube permite que os usuários criem clusters reutilizáveis ​​personalizados que podem ser gerenciados a partir de um único cliente de linha de comando.
+
+O comando minikube profile nos permite visualizar o status de todos os nossos clusters em uma saída em formato de tabela. Supondo que criamos apenas o cluster minikube padrão, poderíamos listar as propriedades que definem o perfil padrão com:
+
+Lista de perfis do minikube
+
+|----------|------------|---------|----------------|------|---------|--------|--------| |
+Perfil | Driver de VM | Tempo de execução | IP | Porta | Versão | Status | Nós | Ativo |
+|----------|------------|---------|----------------|------|---------|---------|--------|
+| minikube | virtualbox | docker | 192.168.59.100 | 8443 | v1.28.3 | Em execução | 1 | * |
+|----------|------------|---------|----------------|------|---------|---------|--------|
+
+Esta tabela apresenta as colunas associadas às propriedades padrão, como o nome do perfil: minikube, o driver de isolamento: VirtualBox, o tempo de execução do contêiner: Docker, a versão do Kubernetes: v1.28.3 e o status do cluster - em execução ou parado. A tabela também exibe o número de nós: 1 por padrão, o endereço IP privado da VM VirtualBox do plano de controle do cluster minikube e a porta segura que expõe o Servidor de API aos componentes, agentes e clientes do plano de controle do cluster: 8443. 
+
+E se, em vez disso, desejarmos criar vários clusters reutilizáveis, com outros drivers (Docker ou Podman - ainda experimental no Linux) para isolamento de nós, ou diferentes versões do Kubernetes (v1.27.10 ou v1.28.1), outro runtime (cri-o ou containerd) e possivelmente 2, 3 ou mais nós (se permitido pelos recursos do nosso sistema host)? E se desejarmos personalizar ainda mais o cluster com uma opção de rede ou plugin específico? O comando minikube start nos permite criar esses perfis personalizados com as flags --profile ou -p . Vários drivers de isolamento também suportam a criação de VMs de nós ou contêineres de nós de tamanhos personalizados, recursos que não exploraremos neste curso, pois nem todos são muito estáveis ​​no momento da redação deste artigo.
+
+Abaixo estão alguns exemplos de comandos de inicialização mais complexos que permitem a criação de clusters personalizados com o Minikube. Eles pressupõem que o driver desejado (Docker e/ou Podman) tenha sido instalado na estação de trabalho host. Não há necessidade de baixar o CNI (plugin de rede) ou o tempo de execução do contêiner desejado; eles serão configurados e habilitados pelo Minikube em nosso nome:
+
+$  minikube start --kubernetes-version=v1.27.10 \
+  --driver=podman --profile minipod
+
+$ minikube start --nodes=2 --kubernetes-version=v1.28.1 \
+  --driver=docker --profile doubledocker
+
+$ minikube start --driver=virtualbox --nodes=3 --disk-size=10g \
+  --cpus=2 --memory=6g --kubernetes-version=v1.27.12 --cni=calico \
+  --container-runtime=cri-o -p multivbox
+
+$ minikube start --driver=docker --cpus=6 --memory=8g \
+  --kubernetes-version="1.27.12" -p largedock
+
+$ minikube start --driver=virtualbox -n 3 --container-runtime=containerd \
+  --cni=calico -p minibox
+
+Quando vários perfis de cluster estiverem disponíveis (o minikube padrão e o minibox personalizado), a tabela de perfis ficará assim:
+
+Lista de perfis do minikube
+
+|----------|------------|---------|----------------|------|---------|--------|--------| |
+Perfil | Driver de VM | Tempo de execução | IP | Porta | Versão | Status | Nós | Ativo |
+|----------|------------|---------|----------------|------|---------|---------|--------|
+| minibox | virtualbox | crio | 192.168.59.101 | 8443 | v1.25.3 | Em execução | 3 | |
+| minikube | virtualbox | docker | 192.168.59.100 | 8443 | v1.25.3 | Em execução | 1 | * |
+|----------|------------|---------|----------------|------|---------|---------|--------|--------|
+
+O marcador ativo indica o perfil do cluster de destino da ferramenta de linha de comando minikube, também conhecido como seu contexto. O cluster de destino pode ser definido como minibox com o seguinte comando:
+
+$ minikube perfil minibox
+
+O cluster de destino pode ser definido como o minikube padrão com um dos seguintes comandos:
+
+$ perfil minikube minikube
+
+$ minikube perfil padrão
+
+## Recursos avançados do Minikube
+
+A maioria dos comandos do minikube , como start, stop, node, etc., reconhecem o perfil, o que significa que o usuário precisa especificar explicitamente o cluster de destino do comando, por meio do nome do perfil. O cluster padrão do minikube, no entanto, pode ser gerenciado implicitamente sem especificar seu nome de perfil. Parando e reiniciando os dois clusters listados acima, o cluster do minibox (explicitamente) e o cluster padrão do minikube (implicitamente):
+
+$ minikube stop -p minibox
+
+$ minikube start -p minibox
+
+$ minikube stop
+
+$ minikube start
+
+Comandos adicionais úteis do minikube :
+
+Para exibir a versão da instalação atual do Minikube:
+
+$ versão minikube
+
+versão do minikube: v1.32.0
+confirmação: 8220a6eb95f0a4d75f7f2d7b14cef975f050512d
+
+A conclusão é uma configuração pós-instalação útil para permitir que o comando minikube responda aos mecanismos típicos de conclusão automática, como concluir um comando no terminal pressionando a tecla TAB. Para habilitar a conclusão para o shell bash no Ubuntu:
+
+$ sudo apt install bash-completion
+
+$ fonte /etc/bash_completion
+
+$ source <(bash de conclusão do minikube)
+
+Se necessário, execute também o seguinte comando:
+
+$ minikube completion bash
+
+Um comando que permite aos usuários listar os nós de um cluster, adicionar novos nós de plano de controle ou nós de trabalho, excluir nós de cluster existentes, iniciar ou parar nós individuais de um cluster:
+
+$ lista de nós do minikube
+
+minikube  192.168.59.100
+
+$ minikube lista de nós -p minibox
+
+minibox 192.168.59.101
+minibox-m02 192.168.59.102
+minibox-m03 192.168.59.103
+
+Para exibir o endereço IP do nó do plano de controle do cluster ou o IP de outro nó com os sinalizadores --node  ou -n :
+
+$ minikube ip
+
+192.168.59.100
+
+$ minikube -p ip do minibox
+
+192.168.59.101
+
+$ minikube -p minibox ip -n minibox-m02
+
+192.168.59.102
+
+Quando uma configuração de cluster não é mais útil, o perfil do cluster pode ser excluído. Este comando também reconhece perfis — ele exclui o cluster minikube padrão se nenhum perfil for especificado, ou um cluster personalizado se o perfil dele for especificado:
+
+$ minikube delete
+
+🔥 Excluindo "minikube" no VirtualBox ...
+💀 Removido todos os vestígios do cluster "minikube".
+
+$ minikube delete -p minibox
+
+🔥 Excluindo "minibox" no VirtualBox ...
+🔥 Excluindo "minibox-m02" no VirtualBox ...
+🔥 Excluindo "minibox-m03" no VirtualBox ...
+💀 Removidos todos os vestígios do cluster "minibox".
+
+Para comandos adicionais e opções de uso, visite a referência de linha de comando do Minikube . 

@@ -1,0 +1,74 @@
+Instalando o Minikube no Linux
+Vamos aprender a instalar a versão mais recente do Minikube no Ubuntu Linux 22.04 LTS, especificamente com o VirtualBox v7.0. Esta instalação pressupõe que nenhum outro software de isolamento esteja instalado em nossa estação de trabalho Linux, como KVM2, QEMU, Docker Engine ou Podman, que o Minikube possa usar como driver.
+
+OBSERVAÇÃO : Para outras distribuições ou versões do sistema operacional Linux, versões do VirtualBox e Minikube, as etapas de instalação podem variar! Consulte a instalação do Minikube para obter instruções específicas!
+
+Verifique o suporte à virtualização no seu sistema operacional Linux em um terminal (uma saída não vazia indica virtualização suportada):
+
+$ grep -E --color 'vmx|svm' /proc/cpuinfo
+
+A maneira mais fácil de baixar e instalar o hipervisor VirtualBox para Linux é através do site oficial de downloads. O VirtualBox está disponível para diversas distribuições Linux, como Oracle Linux, RHEL, CentOS 7, Ubuntu, Debian, openSUSE e Fedora.
+
+O Minikube pode ser facilmente baixado e instalado em um terminal. A versão mais recente ou uma versão específica disponível na página de lançamentos do Minikube pode ser instalada executando os seguintes comandos. Embora esses comandos de instalação reflitam o guia de instalação oficial no momento da atualização do conteúdo do curso, eles podem mudar em um futuro próximo como parte do crescimento contínuo do Kubernetes. É altamente recomendável consultar o guia de instalação oficial para Linux > x86-64 > Estável ao tentar a instalação, para garantir que os repositórios de pacotes mais atualizados sejam usados ​​no processo. Abaixo, apresentamos a opção de download binário , uma abordagem de instalação neutra em relação à distribuição:
+
+$ curl -LO \
+h ttps://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+
+$ sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+OBSERVAÇÃO : Substituir /latest/  por uma versão específica, como  /v1.31.2/  , fará o download da versão especificada do Minikube.
+
+Inicie o Minikube. Em um terminal, podemos iniciar o Minikube com o comando minikube start , que inicializa um cluster de nó único com a versão estável mais recente do Kubernetes suportada. Para uma versão específica do Kubernetes, a opção --kubernetes-version pode ser usada como minikube start --kubernetes-version=v1.27.1  (onde "latest" é o valor padrão e aceitável da versão, e "stable" também é aceitável). Caso existam outros drivers de virtualização candidatos para o Minikube na estação de trabalho, é recomendável fornecer o driver desejado com a opção --driver=virtualbox . Opções de inicialização mais avançadas serão exploradas posteriormente neste capítulo:
+
+$ minikube start --driver=virtualbox
+
+😄 minikube v1.32.0 no Ubuntu 22.04
+✨ Usando o driver do VirtualBox com base na configuração do usuário
+💿 Baixando a imagem de inicialização da VM ...
+   > minikube-v1.32.1-amd64.iso....: 65 B / 65 B [---------] 100,00% ? p/s 0s
+   > minikube-v1.32.1-amd64.iso: 292,96 MiB / 292,96 MiB 100,00% 31,34 MiB p
+👍 Iniciando o nó do plano de controle minikube no cluster minikube
+💾 Baixando o Kubernetes v1.28.3 preload ...
+   > preloaded-images-k8s-v18-v1...: 403,35 MiB / 403,35 MiB 100,00% 32,19 M
+🔥 Criando VM virtualbox (CPUs=2, Memória=6000MB, Disco=20000MB) ...
+🐳 Preparando o Kubernetes v1.28.3 no Docker 24.0.7 ...
+   ▪ Gerando certificados e chaves ...
+   ▪ Inicializando o plano de controle ...
+   ▪ Configurando regras RBAC...
+🔗 Configurando a ponte CNI (Container Networking Interface)...
+🔎 Verificando componentes do Kubernetes...
+   ▪ Usando a imagem gcr.io/k8s-minikube/storage-provisioner:v5
+🌟 Complementos habilitados: storage-provisioner, default-storageclass
+💡 kubectl não encontrado. Se precisar, tente: 'minikube kubectl -- get pods -A'
+🏄 Pronto! O kubectl agora está configurado para usar o cluster "minikube" e o namespace "default" por padrão.
+
+NOTA : Uma mensagem de erro que diz "Não foi possível escolher um driver padrão..." significa que o Minikube não conseguiu localizar nenhum dos hipervisores ou runtimes suportados. A recomendação é instalar ou reinstalar uma ferramenta de isolamento desejada e garantir que seu executável seja encontrado no PATH padrão da sua distribuição de sistema operacional.
+
+NOTA: Uma mensagem de erro que diz "O módulo do kernel vboxdrv não está carregado" significa que um módulo crítico do kernel do VirtualBox pode não estar disponível. Primeiro, tente reinstalar o VirtualBox na estação de trabalho. Em seguida, tente instalar um compilador C que pode estar ausente na sua estação de trabalho e, em seguida, compile o módulo do kernel. Para o sistema operacional Ubuntu 22.04 LTS, o compilador gcc necessário pode ser baixado e instalado em https://packages.ubuntu.com/jammy/amd64/gcc-12/download . O módulo do kernel pode ser compilando com o comando sudo /sbin/vboxconfig . Após uma reconstrução bem-sucedida, tente iniciar o minikube novamente com o VirtualBox usando o comando acima.
+
+Verifique o status. Com o comando minikube status , exibimos o status do cluster Minikube:
+
+$ status do minikube
+
+minikube
+tipo: Plano de controle
+host: Executando
+kubelet: Executando
+apiserver: Executando
+kubeconfig: Configurado
+
+Pare o Minikube. Com o comando minikube stop , podemos parar o Minikube. Este comando interrompe todos os aplicativos em execução no Minikube, interrompe com segurança o cluster e a VM do VirtualBox, preservando nosso trabalho até decidirmos reiniciar o cluster do Minikube, preservando a VM do Minikube:
+
+$ minikube stop
+
+✋ Parando o nó "minikube" ...
+🛑 1 nó parado.
+
+Quando for a hora de executar o cluster novamente, basta executar o comando minikube start (a opção de driver não é necessária) e ele reiniciará o cluster Minikube inicializado anteriormente.
+
+Remover o Minikube. O comando minikube delete remove completamente o Minikube e a VM do Minikube. Este comando deve ser tentado somente quando o cluster Minikube for desativado. Todo o trabalho será perdido após a conclusão deste comando:
+
+$ minikube delete
+
+🔥 Excluindo "minikube" no VirtualBox ...
+💀 Removido todos os vestígios do cluster "minikube".
