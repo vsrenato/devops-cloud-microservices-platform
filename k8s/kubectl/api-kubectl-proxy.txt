@@ -1,0 +1,41 @@
+APIs com 'kubectl proxy'
+Ao emitir o comando kubectl proxy , o kubectl se autentica com o servidor de API no nó do plano de controle e disponibiliza os serviços na porta proxy padrão 8001 .
+
+Primeiro, emitimos o comando kubectl proxy :
+
+$ kubectl proxy
+
+Começando a servir em 127.0.0.1:8001
+
+Ele bloqueia o terminal enquanto o proxy estiver em execução, a menos que o executemos em segundo plano (com kubectl proxy & ).
+
+Quando o proxy kubectl estiver em execução, podemos enviar solicitações à API pelo host local na porta proxy padrão 8001 (de outro terminal, já que o proxy bloqueia o primeiro terminal quando executado em primeiro plano):
+
+$ curl http://localhost:8001/
+
+{
+ "caminhos": [
+   "/api",
+   "/api/v1",
+   "/apis",
+   "/apis/apps",
+   ......
+   ......
+   "/logs",
+   "/métricas",
+   "/openapi/v2",
+   "/versão"
+ ]
+}
+
+Com a solicitação curl acima , solicitamos todos os endpoints da API do servidor de API. Clicar no link acima (no comando curl ) abrirá a mesma saída de listagem em uma aba do navegador.
+
+Podemos explorar diversas combinações de caminhos com curl  ou em um navegador também, como:
+
+http://localhost:8001/api/v1
+
+http://localhost:8001/apis/apps/v1
+
+http://localhost:8001/healthz
+
+http://localhost:8001/métricas

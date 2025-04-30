@@ -1,0 +1,59 @@
+APIs com autenticação
+Quando não estivermos usando o  proxy kubectl , precisamos nos autenticar no Servidor de API ao enviar solicitações de API. Podemos autenticar fornecendo um Token de Portador ao emitir um comando curl ou fornecendo um conjunto de chaves e certificados.
+
+Um Token de Portador é um token de acesso que pode ser gerado pelo servidor de autenticação (o Servidor de API no nó do plano de controle) mediante solicitação do cliente. Usando esse token, o cliente pode se comunicar com segurança com o Servidor de API do Kubernetes sem fornecer detalhes de autenticação adicionais e, em seguida, acessar os recursos. O token pode precisar ser fornecido novamente para solicitações de acesso a recursos subsequentes. 
+
+Vamos criar um token de acesso para a ServiceAccount padrão e conceder permissão especial para acessar o diretório raiz da API (permissão especial que não era necessária quando o proxy kubectl foi usado anteriormente). A permissão especial será definida por meio de uma política de Controle de Acesso Baseado em Função (RBAC). A política é o  clusterrole definido abaixo, que é concedido por meio da  definição clusterrolebinding (RBAC, clusterroles e clusterrolebindings serão discutidos em um capítulo posterior). A permissão especial é necessária apenas para acessar o diretório raiz da API, mas não para acessar /api , /apis ou outros subdiretórios:
+
+$ export TOKEN=$(kubectl cria token padrão)
+
+$ kubectl criar clusterrole api-access-root  --verb=get --non-resource-url=/*
+
+$ kubectl criar clusterrolebinding api-access-root --clusterrole api-access-root --serviceaccount=default:default
+
+Recupere o ponto de extremidade do servidor de API:
+
+$ export APISERVER=$(kubectl config view | grep https |  cut -f 2- -d ":" | tr -d " ")
+
+Confirme se o APISERVER armazenou o mesmo IP que o IP do plano de controle do Kubernetes emitindo os dois comandos a seguir e comparando suas saídas:
+
+$ echo $APISERVER
+
+https://192.168.99.100:8443
+
+$ kubectl cluster-info
+
+O plano de controle do Kubernetes está sendo executado em https://192.168.99.100:8443 ...
+
+Acesse o servidor de API usando o comando curl , conforme mostrado abaixo:
+
+$ curl $APISERVER --header "Autorização: Portador $TOKEN" --insecure
+
+{
+ "caminhos": [
+   "/api",
+   "/api/v1",
+   "/apis",
+   "/apis/apps",
+   ......
+   ......
+   "/logs",
+   "/métricas",
+   "/openapi/v2",
+   "/versão"
+ ]
+}
+
+Podemos executar comandos curl adicionais para recuperar detalhes sobre grupos de API específicos da seguinte maneira. Esses comandos devem funcionar mesmo sem a permissão especial definida acima e concedida à ServiceAccount padrão associada ao token de acesso: 
+
+$ curl $APISERVER/api/v1 --header "Autorização: Portador $TOKEN" --insecure
+
+$ curl $APISERVER/apis/apps/v1 --header "Autorização: Portador $TOKEN" --insecure
+
+$ curl $APISERVER/healthz --header "Autorização: Portador $TOKEN" --insecure
+
+$ curl $APISERVER/metrics --header "Autorização: Portador $TOKEN" --insecure
+
+Em vez do token de acesso , podemos extrair o certificado do cliente, a chave do cliente e os dados da autoridade certificadora do arquivo .kube/config . Uma vez extraídos, eles podem ser codificados e passados ​​com um comando curl para autenticação. O novo comando curl seria semelhante ao exemplo abaixo. No entanto, lembre-se de que o comando de exemplo abaixo só funcionaria com os dados do certificado do cliente, da chave e da autoridade certificadora codificados em Base 64, e é fornecido apenas para fins ilustrativos .
+
+$ curl $APISERVER --cert encoded-cert --key encoded-key --cacert encoded-ca

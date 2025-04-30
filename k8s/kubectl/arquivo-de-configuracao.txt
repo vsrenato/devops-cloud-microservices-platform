@@ -1,0 +1,50 @@
+## Arquivo de configuração do kubectl
+
+Para acessar o cluster do Kubernetes, o cliente kubectl precisa do ponto de extremidade do nó do plano de controle e das
+credenciais apropriadas para poder interagir com segurança com o Servidor de API em execução no nó do plano de controle. 
+Ao iniciar o Minikube, o processo de inicialização cria, por padrão, um arquivo de configuração, config , 
+dentro do diretório .kube (frequentemente chamado de kubeconfig ), que reside no diretório inicial do usuário . 
+O arquivo de configuração contém todos os detalhes de conexão exigidos pelo kubectl . 
+Por padrão, o binário kubectl analisa esse arquivo para encontrar o ponto de extremidade de conexão do nó do plano de controle,
+juntamente com as credenciais necessárias. Vários arquivos kubeconfig podem ser configurados com um único cliente kubectl.
+Para visualizar os detalhes da conexão, podemos exibir o conteúdo do arquivo ~/.kube/config (no Linux) ou executar o seguinte 
+comando (a saída é redigida para facilitar a leitura):
+
+$ kubectl visualização de configuração
+
+apiVersion: v1
+clusters:
+- cluster:
+    autoridade-de-certificação: /home/student/.minikube/ca.crt
+    servidor: https://192.168.99.100:8443
+  nome: minikube
+contextos:
+- contexto:
+    cluster: minikube
+    usuário: minikube
+  nome: minikube
+contexto-atual: minikube
+tipo:
+preferências de configuração: {}
+usuários:
+- nome: minikube
+  usuário:
+    certificado-do-cliente: /home/student/.minikube/ perfis/minikube/ cliente.crt
+    chave-do-cliente: /home/student/.minikube/ perfis/minikube/ cliente.key
+
+O kubeconfig inclui o servidor de ponto de extremidade do servidor de API: ht‌t‌ps://192.168.99.100:8443 e a chave de autenticação do cliente e os dados do certificado do usuário do minikube.
+
+Após a instalação do kubectl , podemos exibir informações sobre o cluster Minikube Kubernetes com o comando kubectl cluster-info :
+
+$ kubectl cluster-info
+
+O mestre do Kubernetes está sendo executado em http‌‌ps://192.168.99.100:8443. O KubeDNS está sendo executado em http‌‌ps://192.168.99.100:8443/ api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+Para depurar e diagnosticar melhor os problemas do cluster, use 'kubectl cluster-info dump'.
+
+Você pode encontrar mais detalhes sobre as opções de linha de comando do kubectl aqui .
+
+Embora o arquivo ~/.kube/config seja criado automaticamente para o cluster Kubernetes instalado pelo Minikube,
+isso não acontece com clusters Kubernetes instalados por outras ferramentas. Em outros casos,
+o arquivo de configuração precisa ser criado manualmente e, às vezes, reconfigurado para se adequar a diversas
+configurações de rede e cliente/servidor.
