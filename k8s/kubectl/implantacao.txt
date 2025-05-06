@@ -1,0 +1,114 @@
+## Implantações
+
+Objetos de implantação fornecem atualizações declarativas para Pods e ReplicaSets. 
+O DeploymentController faz parte do gerenciador de controladores do nó do plano de controle e, como controlador, 
+também garante que o estado atual sempre corresponda ao estado desejado do nosso aplicativo em contêiner em execução. 
+Ele permite atualizações e reversões contínuas do aplicativo, conhecidas como a estratégia padrão RollingUpdate , 
+por meio de rollouts e rollbacks , e gerencia diretamente seus ReplicaSets para dimensionamento do aplicativo. 
+Ele também oferece suporte a uma estratégia de atualização disruptiva e menos popular, conhecida como Recreate .
+
+Abaixo está um exemplo de manifesto de definição de um objeto de implantação em formato YAML. 
+Ele representa o método declarativo para definir um objeto e pode servir como modelo para um manifesto de definição de implantação
+muito mais complexo, se desejado:
+
+apiVersion: apps/v1
+tipo: Implantação
+metadados:
+  nome: nginx-deployment
+  rótulos:
+    aplicativo: nginx-deployment
+especificação:
+  réplicas: 3
+  seletor:
+    matchLabels:
+      aplicativo: nginx-deployment
+  modelo:
+    metadados:
+      rótulos:
+        aplicativo: nginx-deployment
+    especificação:
+      contêineres:
+      - nome: nginx
+        imagem: nginx:1.20.2
+        portas:
+        - containerPort: 80
+
+Embora create seja exemplificado abaixo, usuários avançados de Kubernetes podem optar por usar apply :
+
+$ kubectl create -f def-deploy.yaml
+
+Imperativamente, podemos simplesmente executar a Implantação definida acima sem o manifesto de definição propriamente dito. A seguir, um comando de várias linhas que deve ser selecionado integralmente para copiar/colar (incluindo o caractere de barra invertida "\"):
+
+$ kubectl criar implantação nginx-deployment \
+--image=nginx:1.20.2 --port=80 --replicas=3
+
+No entanto, quando precisar de um manifesto de definição inicial, saber como gerá-lo pode ser uma salvação. O comando imperativo, com sinalizadores de chave adicionais, como " dry-run" e a saída yaml , pode gerar o modelo de definição em vez de executar a implantação, enquanto o modelo é armazenado no arquivo nginx-deploy.yaml . A seguir, um comando de várias linhas que deve ser selecionado integralmente para copiar/colar (incluindo o caractere de barra invertida "\"):
+
+$ kubectl criar implantação nginx-deployment \
+--image=nginx:1.20.2 --port=80 --replicas=3 \
+--dry-run=client -o yaml > nginx-deploy.yaml
+
+Podemos gerar um manifesto de definição de implantação em JSON:
+
+$ kubectl criar implantação nginx-deployment \
+--image=nginx:1.20.2 --port=80 --replicas=3 \
+--dry-run=client -o json > nginx-deploy.json
+
+Os arquivos de definição YAML e JSON podem servir como modelos ou podem ser carregados no cluster, respectivamente, como:
+
+$ kubectl create -f nginx-deploy.yaml
+$ kubectl create -f nginx-deploy.json
+
+Depois que o objeto de implantação é criado, o sistema Kubernetes anexa o campo de status ao objeto e o
+preenche com todos os campos de status necessários.
+
+## Conjuntos de Daemons
+DaemonSets  são operadores projetados para gerenciar agentes de nós. 
+Eles se assemelham aos operadores ReplicaSet e Deployment ao gerenciar múltiplas réplicas de Pod e atualizações de aplicativos, 
+mas os DaemonSets apresentam um recurso distinto que impõe a colocação de uma única réplica de Pod por Nó, 
+em todos os Nó ou em um subconjunto selecionado de Nó. Em contraste, os operadores ReplicaSet e Deployment, por padrão, 
+não têm controle sobre o agendamento e o posicionamento de múltiplas réplicas de Pod no mesmo Nó.
+
+Abaixo está um exemplo de manifesto de definição de um objeto DaemonSet no formato YAML:
+
+apiVersion: apps/v1
+tipo: DaemonSet
+metadados:
+  nome: fluentd-agent
+  namespace: padrão
+  rótulos:
+    k8s-app: fluentd-agent
+especificação:
+  seletor:
+    matchLabels:
+      k8s-app: fluentd-agent
+  modelo:
+    metadados:
+      rótulos:
+        k8s-app: fluentd-agent
+    especificação:
+      contêineres:
+      - nome: fluentd
+        imagem: quay.io/fluentd_elasticsearch/fluentd:v4.5.2
+
+Para criação do exemplo usar:
+
+$ kubectl create -f fluentd-ds.yaml
+
+Antes de avançar para tópicos mais complexos, familiarize-se com as operações do DaemonSet com comandos adicionais, como:
+
+$ kubectl apply -f fluentd-ds.yaml --record
+$ kubectl get daemonsets
+$ kubectl get ds -o wide
+$ kubectl get ds fluentd-agent -o yaml
+$ kubectl get ds fluentd-agent -o json
+$ kubectl describe ds fluentd-agent
+$ kubectl rollout status ds fluentd-agent
+$ kubectl rollout history ds fluentd-agent
+$ kubectl rollout history ds fluentd-agent --revision=1
+$ kubectl set image ds fluentd-agent fluentd=quay.io/fluentd_elasticsearch/fluentd:v4.6.2 --record
+$ kubectl rollout history ds fluentd-agent --revision=2
+$ kubectl rollout undo ds fluentd-agent --to-revision=1
+$ kubectl get all -l k8s-app=fluentd-agent -o wide
+$ kubectl delete ds fluentd-agent
+$ kubectl get ds,po -l k8s-app=fluentd-agent

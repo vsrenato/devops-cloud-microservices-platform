@@ -1,4 +1,5 @@
-APIs com autenticação
+## APIs com autenticação
+
 Quando não estivermos usando o  proxy kubectl , precisamos nos autenticar no Servidor de API ao enviar solicitações de API. Podemos autenticar fornecendo um Token de Portador ao emitir um comando curl ou fornecendo um conjunto de chaves e certificados.
 
 Um Token de Portador é um token de acesso que pode ser gerado pelo servidor de autenticação (o Servidor de API no nó do plano de controle) mediante solicitação do cliente. Usando esse token, o cliente pode se comunicar com segurança com o Servidor de API do Kubernetes sem fornecer detalhes de autenticação adicionais e, em seguida, acessar os recursos. O token pode precisar ser fornecido novamente para solicitações de acesso a recursos subsequentes. 
